@@ -2,25 +2,11 @@ import RPi.GPIO as GPIO
 import time
 import picamera
 import subprocess
-from pyslack import SlackClient
 
-addr = subprocess.check_output("ifconfig wlan0 | grep inet", shell=True)
-
-tag=subprocess.check_output(("date", "+%m%d%y%H%M%S")).rstrip()
 started = False
 running = False
 run=0
 frame=0
-
-client = None 
-while client == None:
-	try:
-		client = SlackClient('xoxp-2222178975-2227657186-2585667366-7b182a')
-	except:
-		print "Error connecting to slack:", sys.exc_info()[0]
-	time.sleep(1)
-
-client.chat_post_message('@rlankenau', "TimeLapse just booted: {0}".format(addr), username='slackbot')
 
 FRAMES_PER_HOUR = 600
 
@@ -56,8 +42,6 @@ GPIO.add_event_detect(11, GPIO.RISING, callback=buttonPress, bouncetime=2000)
 while True:
 	start = time.time()
 	if running:
-		if started == False:
-			client.chat_post_message('@rlankenau', "TimeLapse just started run {0}".format(run), username='slackbot')
 		started = True
 		capture_frame(run,frame)
 		GPIO.output(12, True)
@@ -65,7 +49,6 @@ while True:
 		GPIO.output(12, False)
 		frame += 1
 	elif started == True:
-		client.chat_post_message('@rlankenau', "TimeLapse just ended run {0} with {1} frames".format(run,(frame+1)), username='slackbot')
 		started = False
 
 	time.sleep(int(60*60/FRAMES_PER_HOUR) - (time.time() - start))
