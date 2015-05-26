@@ -4,11 +4,11 @@ import picamera
 import subprocess
 
 started = False
-running = False
+running = True
 run=0
 frame=0
 
-FRAMES_PER_HOUR = 600
+FRAMES_PER_HOUR = 4 
 
 cam = picamera.PiCamera()
 cam.led = False
