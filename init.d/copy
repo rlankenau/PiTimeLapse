@@ -1,0 +1,62 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:        rpi-photo-copy
+# Default-Start:   2 3 4 5
+# Default-Stop: 
+# Short-Description: Start RPi photo copy daemon
+### END INIT INFO
+
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+. /lib/lsb/init-functions
+
+DAEMON=/usr/sbin/rpi-photo-copy.sh
+PIDFILE=/var/run/rpi-photo-copy.pid
+
+test -x $DAEMON || exit 5
+
+LOCKFILE=/var/lock/rpi-photo-copy
+
+lock_rpi_photo_copy() {
+	if [ -x /usr/bin/lockfile-create ]; then
+		lockfile-create $LOCKFILE
+		lockfile-touch $LOCKFILE &
+		LOCKTOUCHPID="$!"
+	fi
+}
+
+unlock_rpi_photo_copy() {
+	if [ -x /usr/bin/lockfile-create ] ; then
+		kill $LOCKTOUCHPID
+		lockfile-remove $LOCKFILE
+	fi
+}
+
+case $1 in
+	start)
+		log_daemon_msg "Starting RPi Photo Copy" "rpi-photo-copy"
+		lock_rpi_photo_copy
+  		start-stop-daemon -b --start --quiet --oknodo --pidfile $PIDFILE --startas $DAEMON 
+		status=$?
+		unlock_rpi_photo_copy
+		log_end_msg $status
+  		;;
+	stop)
+		log_daemon_msg "Stopping RPi Photo Copy" "rpi-photo-copy"
+  		start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE
+		log_end_msg $?
+		rm -f $PIDFILE
+  		;;
+	restart|force-reload)
+		$0 stop && sleep 2 && $0 start
+  		;;
+	reload)
+		;;
+	status)
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart|try-restart|force-reload|status}"
+		exit 2
+		;;
+esac
