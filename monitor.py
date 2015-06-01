@@ -17,8 +17,10 @@ FRAMES_PER_HOUR = 4
 try:
 
 	cam = picamera.PiCamera()
+	cam.resolution = (2592,1944)
 	cam.led = False
 	cam.vflip = True
+	cam.hflip = True
 	time.sleep(2)
 
 	tag = time.time()
